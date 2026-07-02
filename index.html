@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>КОЗА ОРЁТ</title>
+    <title>ПЕРФОРАТОР</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -57,73 +57,108 @@
 </head>
 <body>
     <div id="tap"><span>🐐</span></div>
-    <div id="status">загрузка...</div>
-
-    <audio id="goat" preload="auto"></audio>
+    <div id="status">нажми на козу</div>
 
     <script>
         (function() {
             const tap = document.getElementById('tap');
             const status = document.getElementById('status');
-            const goat = document.getElementById('goat');
-
-            // Реальный MP3 козы (меканье) в Base64
-            const base64 = "data:audio/mpeg;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAsAAANdAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w==";
-
-            goat.src = base64;
-            goat.volume = 1.0;
 
             let isPlaying = false;
-            let autoPlayed = false;
 
             function blast() {
                 if (isPlaying) return;
                 isPlaying = true;
-                goat.currentTime = 0;
-                goat.play().then(() => {
-                    status.innerText = '🐐 КОЗА ОРЁТ!';
-                    status.style.color = '#ffaa44';
-                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                }).catch(() => {
-                    status.innerText = '❌ нажми на козу';
-                    isPlaying = false;
-                });
-                setTimeout(() => { isPlaying = false; }, 2000);
-            }
 
-            // Автозапуск
-            document.addEventListener('touchstart', function firstTouch() {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if (ctx.state === 'suspended') ctx.resume();
-                if (!autoPlayed) {
-                    autoPlayed = true;
-                    setTimeout(blast, 300);
-                }
-                document.removeEventListener('touchstart', firstTouch);
-            }, { once: true, passive: true });
+                const now = ctx.currentTime;
 
-            window.addEventListener('load', () => {
-                if (localStorage.getItem('swill_blast') === 'true') {
-                    setTimeout(() => {
-                        if (!autoPlayed) {
-                            autoPlayed = true;
-                            blast();
-                        }
-                    }, 500);
+                // Перфоратор — 12 ударов
+                const hits = 12;
+                for (let i = 0; i < hits; i++) {
+                    const t = now + i * 0.09 + Math.random() * 0.02;
+
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180 + Math.random() * 80, t);
+                    osc.frequency.exponentialRampToValueAtTime(60 + Math.random() * 40, t + 0.08);
+                    gain.gain.setValueAtTime(0.9 + Math.random() * 0.3, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.12);
+
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.type = 'square';
+                    osc2.frequency.setValueAtTime(900 + Math.random() * 400, t);
+                    osc2.frequency.exponentialRampToValueAtTime(300 + Math.random() * 200, t + 0.06);
+                    gain2.gain.setValueAtTime(0.4 + Math.random() * 0.3, t);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.start(t);
+                    osc2.stop(t + 0.07);
+
+                    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+                    const d = buf.getChannelData(0);
+                    for (let j = 0; j < d.length; j++) {
+                        d[j] = (Math.random() * 2 - 1) * Math.exp(-j / (d.length * 0.3));
+                    }
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buf;
+                    const g3 = ctx.createGain();
+                    g3.gain.setValueAtTime(0.6 + Math.random() * 0.3, t);
+                    g3.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+                    noise.connect(g3);
+                    g3.connect(ctx.destination);
+                    noise.start(t);
+                    noise.stop(t + 0.05);
                 }
+
+                const hum = ctx.createOscillator();
+                const gh = ctx.createGain();
+                hum.type = 'sawtooth';
+                hum.frequency.setValueAtTime(55, now);
+                gh.gain.setValueAtTime(0.3, now);
+                gh.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                hum.connect(gh);
+                gh.connect(ctx.destination);
+                hum.start(now);
+                hum.stop(now + 0.8);
+
+                status.innerText = '⛏️ ПЕРФОРАТОР!';
+                status.style.color = '#ff8800';
+                if (navigator.vibrate) {
+                    navigator.vibrate([60, 30, 60, 30, 60, 30, 80, 30, 60, 30, 80, 40]);
+                }
+
                 setTimeout(() => {
-                    if (!autoPlayed) status.innerText = 'коснись экрана';
+                    isPlaying = false;
                 }, 1500);
-            });
+            }
 
             tap.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (!autoPlayed) autoPlayed = true;
                 blast();
                 localStorage.setItem('swill_blast', 'true');
             });
 
-            status.innerText = 'коснись экрана';
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    if (localStorage.getItem('swill_blast') === 'true') tap.click();
+                }, 400);
+            });
+
+            document.addEventListener('touchstart', () => {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state === 'suspended') ctx.resume();
+            }, { once: true, passive: true });
+
+            status.innerText = 'нажми на козу';
         })();
     </script>
 </body>
