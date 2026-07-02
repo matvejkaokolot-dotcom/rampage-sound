@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>КОЗА ОРЁТ МАКСИМУМ</title>
+    <title>КОЗА ОРЁТ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -59,7 +59,7 @@
     <div id="tap"><span>🐐</span></div>
     <div id="status">загрузка...</div>
 
-    <audio id="goat" preload="auto" src="https://www.myinstants.com/media/sounds/goat_scream.mp3"></audio>
+    <audio id="goat" preload="auto"></audio>
 
     <script>
         (function() {
@@ -67,7 +67,10 @@
             const status = document.getElementById('status');
             const goat = document.getElementById('goat');
 
-            // Максимальная громкость
+            // Реальный MP3 козы (меканье) в Base64
+            const base64 = "data:audio/mpeg;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAsAAANdAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w==";
+
+            goat.src = base64;
             goat.volume = 1.0;
 
             let isPlaying = false;
@@ -78,68 +81,43 @@
                 isPlaying = true;
                 goat.currentTime = 0;
                 goat.play().then(() => {
-                    status.innerText = '🐐 КОЗА ОРЁТ (МАКСИМУМ)!';
+                    status.innerText = '🐐 КОЗА ОРЁТ!';
                     status.style.color = '#ffaa44';
-                    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 150]);
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 }).catch(() => {
                     status.innerText = '❌ нажми на козу';
                     isPlaying = false;
                 });
-                setTimeout(() => { isPlaying = false; }, 2500);
+                setTimeout(() => { isPlaying = false; }, 2000);
             }
 
-            // Принудительно ставим громкость на максимум через Web Audio (если браузер позволяет)
-            function setMaxVolume() {
-                try {
-                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    if (ctx.state === 'suspended') ctx.resume();
-                    // Создаём пустой узел, чтобы активировать аудио
-                    const gain = ctx.createGain();
-                    gain.gain.value = 1.0;
-                    gain.connect(ctx.destination);
-                    // Небольшой тихий "пинг" для активации
-                    const osc = ctx.createOscillator();
-                    osc.frequency.value = 1;
-                    osc.connect(gain);
-                    osc.start(0);
-                    osc.stop(0.001);
-                } catch (e) {}
-            }
-
-            // Автозапуск при заходе
+            // Автозапуск
             document.addEventListener('touchstart', function firstTouch() {
-                setMaxVolume();
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state === 'suspended') ctx.resume();
                 if (!autoPlayed) {
                     autoPlayed = true;
-                    setTimeout(() => {
-                        blast();
-                    }, 200);
+                    setTimeout(blast, 300);
                 }
                 document.removeEventListener('touchstart', firstTouch);
             }, { once: true, passive: true });
 
-            // Если уже было разрешение — запускаем сразу
             window.addEventListener('load', () => {
-                setMaxVolume();
                 if (localStorage.getItem('swill_blast') === 'true') {
                     setTimeout(() => {
                         if (!autoPlayed) {
                             autoPlayed = true;
                             blast();
                         }
-                    }, 400);
+                    }, 500);
                 }
                 setTimeout(() => {
-                    if (!autoPlayed) {
-                        status.innerText = 'коснись экрана для звука';
-                    }
+                    if (!autoPlayed) status.innerText = 'коснись экрана';
                 }, 1500);
             });
 
-            // Ручной клик
             tap.addEventListener('click', (e) => {
                 e.preventDefault();
-                setMaxVolume();
                 if (!autoPlayed) autoPlayed = true;
                 blast();
                 localStorage.setItem('swill_blast', 'true');
