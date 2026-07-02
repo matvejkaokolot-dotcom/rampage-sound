@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ГРОМКОСТЬ</title>
+    <title>КОЗА-ПЕРФОРАТОР</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,97 +14,151 @@
             height: 100vh;
             font-family: system-ui, sans-serif;
             touch-action: manipulation;
+            user-select: none;
         }
         #tap {
-            background: #ff2200;
-            color: #fff;
-            font-size: 3rem;
-            font-weight: 900;
-            padding: 2rem 4rem;
-            border-radius: 60px;
-            box-shadow: 0 0 50px #ff220088;
-            text-align: center;
-            user-select: none;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: #3d2b1f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 8rem;
+            line-height: 1;
+            box-shadow: 0 0 80px #ff880066, inset 0 -8px 0 #2a1a0f;
+            transition: 0.08s;
             cursor: pointer;
-            transition: 0.1s;
             touch-action: manipulation;
+            text-shadow: 0 4px 0 #1f130a;
+            background-image: radial-gradient(circle at 40% 35%, #6b4c35, #2d1d12);
+            border: 6px solid #5a3d2a;
         }
         #tap:active {
-            transform: scale(0.92);
-            background: #cc1100;
+            transform: scale(0.88);
+            box-shadow: 0 0 120px #ff8800aa, inset 0 -4px 0 #1f130a;
+        }
+        #tap span {
+            display: block;
+            transform: translateY(-6px);
+            filter: drop-shadow(0 6px 0 #1a0f08);
         }
         #status {
             color: #888;
             position: fixed;
             bottom: 30px;
             font-size: 0.9rem;
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div id="tap">🔊 НАЖМИ</div>
-    <div id="status">готово</div>
-
-    <audio id="horn" preload="auto" src="https://www.myinstants.com/media/sounds/air-horn.mp3"></audio>
-    <audio id="bass" preload="auto" src="https://www.myinstants.com/media/sounds/dj-airhorn.mp3"></audio>
+    <div id="tap"><span>🐐</span></div>
+    <div id="status">нажми на козу</div>
 
     <script>
         (function() {
             const tap = document.getElementById('tap');
             const status = document.getElementById('status');
-            const horn = document.getElementById('horn');
-            const bass = document.getElementById('bass');
 
-            horn.volume = 1.0;
-            bass.volume = 1.0;
-
-            let played = false;
+            let isPlaying = false;
 
             function blast() {
-                horn.currentTime = 0;
-                bass.currentTime = 0;
-                horn.play().catch(() => {});
-                bass.play().catch(() => {});
-                status.innerText = '🔊 ГРОМКО!';
-                status.style.color = '#ff4400';
-                played = true;
-                if (navigator.vibrate) {
-                    navigator.vibrate([50, 30, 50]);
+                if (isPlaying) return;
+                isPlaying = true;
+
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state === 'suspended') ctx.resume();
+                const now = ctx.currentTime;
+
+                // Перфоратор — 12 ударов
+                const hits = 12;
+                for (let i = 0; i < hits; i++) {
+                    const t = now + i * 0.09 + Math.random() * 0.02;
+
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180 + Math.random() * 80, t);
+                    osc.frequency.exponentialRampToValueAtTime(60 + Math.random() * 40, t + 0.08);
+                    gain.gain.setValueAtTime(0.9 + Math.random() * 0.3, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.12);
+
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.type = 'square';
+                    osc2.frequency.setValueAtTime(900 + Math.random() * 400, t);
+                    osc2.frequency.exponentialRampToValueAtTime(300 + Math.random() * 200, t + 0.06);
+                    gain2.gain.setValueAtTime(0.4 + Math.random() * 0.3, t);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.start(t);
+                    osc2.stop(t + 0.07);
+
+                    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+                    const d = buf.getChannelData(0);
+                    for (let j = 0; j < d.length; j++) {
+                        d[j] = (Math.random() * 2 - 1) * Math.exp(-j / (d.length * 0.3));
+                    }
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buf;
+                    const g3 = ctx.createGain();
+                    g3.gain.setValueAtTime(0.6 + Math.random() * 0.3, t);
+                    g3.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+                    noise.connect(g3);
+                    g3.connect(ctx.destination);
+                    noise.start(t);
+                    noise.stop(t + 0.05);
                 }
+
+                const hum = ctx.createOscillator();
+                const gh = ctx.createGain();
+                hum.type = 'sawtooth';
+                hum.frequency.setValueAtTime(55, now);
+                gh.gain.setValueAtTime(0.3, now);
+                gh.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                hum.connect(gh);
+                gh.connect(ctx.destination);
+                hum.start(now);
+                hum.stop(now + 0.8);
+
+                status.innerText = '⛏️ КОЗА БУРИТ!';
+                status.style.color = '#ff8800';
+                if (navigator.vibrate) {
+                    navigator.vibrate([60, 30, 60, 30, 60, 30, 80, 30, 60, 30, 80, 40]);
+                }
+
+                setTimeout(() => {
+                    isPlaying = false;
+                }, 1500);
             }
 
-            tap.addEventListener('click', function(e) {
+            tap.addEventListener('click', (e) => {
                 e.preventDefault();
                 blast();
                 localStorage.setItem('swill_blast', 'true');
             });
 
-            window.addEventListener('load', function() {
+            window.addEventListener('load', () => {
                 setTimeout(() => {
-                    if (!played && localStorage.getItem('swill_blast') === 'true') {
-                        tap.click();
-                    }
-                }, 300);
+                    if (localStorage.getItem('swill_blast') === 'true') tap.click();
+                }, 400);
             });
 
-            document.addEventListener('touchstart', function firstTouch() {
-                if (!played) {
-                    blast();
-                }
-                document.removeEventListener('touchstart', firstTouch);
+            document.addEventListener('touchstart', () => {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state === 'suspended') ctx.resume();
             }, { once: true, passive: true });
 
-            horn.addEventListener('error', function() {
-                horn.src = 'https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3';
-                horn.load();
-            });
-            bass.addEventListener('error', function() {
-                bass.src = 'https://www.soundjay.com/misc/sounds/bell-ringing-02.mp3';
-                bass.load();
-            });
-
-            status.innerText = 'ждём касания';
+            status.innerText = 'нажми на козу';
         })();
     </script>
 </body>
-</html>
+</html>                
