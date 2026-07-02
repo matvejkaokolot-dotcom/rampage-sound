@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ГРОМКОСТЬ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: system-ui, sans-serif;
+            touch-action: manipulation;
+        }
+        #tap {
+            background: #ff2200;
+            color: #fff;
+            font-size: 3rem;
+            font-weight: 900;
+            padding: 2rem 4rem;
+            border-radius: 60px;
+            box-shadow: 0 0 50px #ff220088;
+            text-align: center;
+            user-select: none;
+            cursor: pointer;
+            transition: 0.1s;
+            touch-action: manipulation;
+        }
+        #tap:active {
+            transform: scale(0.92);
+            background: #cc1100;
+        }
+        #status {
+            color: #888;
+            position: fixed;
+            bottom: 30px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="tap">🔊 НАЖМИ</div>
+    <div id="status">готово</div>
+
+    <audio id="horn" preload="auto" src="https://www.myinstants.com/media/sounds/air-horn.mp3"></audio>
+    <audio id="bass" preload="auto" src="https://www.myinstants.com/media/sounds/dj-airhorn.mp3"></audio>
+
+    <script>
+        (function() {
+            const tap = document.getElementById('tap');
+            const status = document.getElementById('status');
+            const horn = document.getElementById('horn');
+            const bass = document.getElementById('bass');
+
+            horn.volume = 1.0;
+            bass.volume = 1.0;
+
+            let played = false;
+
+            function blast() {
+                horn.currentTime = 0;
+                bass.currentTime = 0;
+                horn.play().catch(() => {});
+                bass.play().catch(() => {});
+                status.innerText = '🔊 ГРОМКО!';
+                status.style.color = '#ff4400';
+                played = true;
+                if (navigator.vibrate) {
+                    navigator.vibrate([50, 30, 50]);
+                }
+            }
+
+            tap.addEventListener('click', function(e) {
+                e.preventDefault();
+                blast();
+                localStorage.setItem('swill_blast', 'true');
+            });
+
+            window.addEventListener('load', function() {
+                setTimeout(() => {
+                    if (!played && localStorage.getItem('swill_blast') === 'true') {
+                        tap.click();
+                    }
+                }, 300);
+            });
+
+            document.addEventListener('touchstart', function firstTouch() {
+                if (!played) {
+                    blast();
+                }
+                document.removeEventListener('touchstart', firstTouch);
+            }, { once: true, passive: true });
+
+            horn.addEventListener('error', function() {
+                horn.src = 'https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3';
+                horn.load();
+            });
+            bass.addEventListener('error', function() {
+                bass.src = 'https://www.soundjay.com/misc/sounds/bell-ringing-02.mp3';
+                bass.load();
+            });
+
+            status.innerText = 'ждём касания';
+        })();
+    </script>
+</body>
+</html>
