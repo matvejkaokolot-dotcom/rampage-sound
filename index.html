@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>КОЗА-ПЕРФОРАТОР</title>
+    <title>КОЗА ОРЁТ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -65,7 +65,7 @@
 
             let isPlaying = false;
 
-            function blast() {
+            function goatSound() {
                 if (isPlaying) return;
                 isPlaying = true;
 
@@ -73,66 +73,66 @@
                 if (ctx.state === 'suspended') ctx.resume();
                 const now = ctx.currentTime;
 
-                // Перфоратор — 12 ударов
-                const hits = 12;
-                for (let i = 0; i < hits; i++) {
-                    const t = now + i * 0.09 + Math.random() * 0.02;
+                // Коза — 3 "мека" подряд с паузами, каждое с вибрато и спадающей громкостью
+                const bleats = 3;
+                for (let b = 0; b < bleats; b++) {
+                    const start = now + b * 0.35;
+                    const duration = 0.25 + Math.random() * 0.08;
 
+                    // Основной тон (голос козы) — от 600 до 1200 Гц с "дрожью"
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(180 + Math.random() * 80, t);
-                    osc.frequency.exponentialRampToValueAtTime(60 + Math.random() * 40, t + 0.08);
-                    gain.gain.setValueAtTime(0.9 + Math.random() * 0.3, t);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                    // Вибрато — небольшая качка частоты
+                    const baseFreq = 700 + Math.random() * 300;
+                    osc.frequency.setValueAtTime(baseFreq, start);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.4, start + duration * 0.2);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.7, start + duration * 0.6);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.1, start + duration);
+
+                    gain.gain.setValueAtTime(0.7 + Math.random() * 0.3, start);
+                    gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
                     osc.connect(gain);
                     gain.connect(ctx.destination);
-                    osc.start(t);
-                    osc.stop(t + 0.12);
+                    osc.start(start);
+                    osc.stop(start + duration);
 
+                    // Второй тон — более высокий, "блеющий" (как меканье)
                     const osc2 = ctx.createOscillator();
                     const gain2 = ctx.createGain();
                     osc2.type = 'square';
-                    osc2.frequency.setValueAtTime(900 + Math.random() * 400, t);
-                    osc2.frequency.exponentialRampToValueAtTime(300 + Math.random() * 200, t + 0.06);
-                    gain2.gain.setValueAtTime(0.4 + Math.random() * 0.3, t);
-                    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+                    const baseFreq2 = baseFreq * 1.6 + Math.random() * 200;
+                    osc2.frequency.setValueAtTime(baseFreq2, start);
+                    osc2.frequency.exponentialRampToValueAtTime(baseFreq2 * 0.5, start + duration * 0.5);
+                    osc2.frequency.exponentialRampToValueAtTime(baseFreq2 * 0.8, start + duration);
+                    gain2.gain.setValueAtTime(0.3 + Math.random() * 0.2, start);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, start + duration);
                     osc2.connect(gain2);
                     gain2.connect(ctx.destination);
-                    osc2.start(t);
-                    osc2.stop(t + 0.07);
+                    osc2.start(start);
+                    osc2.stop(start + duration);
 
-                    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+                    // Шумовой "хрип" — чтобы звук был живым, как у настоящей козы
+                    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
                     const d = buf.getChannelData(0);
-                    for (let j = 0; j < d.length; j++) {
-                        d[j] = (Math.random() * 2 - 1) * Math.exp(-j / (d.length * 0.3));
+                    for (let i = 0; i < d.length; i++) {
+                        d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.4));
                     }
                     const noise = ctx.createBufferSource();
                     noise.buffer = buf;
                     const g3 = ctx.createGain();
-                    g3.gain.setValueAtTime(0.6 + Math.random() * 0.3, t);
-                    g3.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+                    g3.gain.setValueAtTime(0.2 + Math.random() * 0.2, start);
+                    g3.gain.exponentialRampToValueAtTime(0.001, start + duration);
                     noise.connect(g3);
                     g3.connect(ctx.destination);
-                    noise.start(t);
-                    noise.stop(t + 0.05);
+                    noise.start(start);
+                    noise.stop(start + duration);
                 }
 
-                const hum = ctx.createOscillator();
-                const gh = ctx.createGain();
-                hum.type = 'sawtooth';
-                hum.frequency.setValueAtTime(55, now);
-                gh.gain.setValueAtTime(0.3, now);
-                gh.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
-                hum.connect(gh);
-                gh.connect(ctx.destination);
-                hum.start(now);
-                hum.stop(now + 0.8);
-
-                status.innerText = '⛏️ КОЗА БУРИТ!';
-                status.style.color = '#ff8800';
+                status.innerText = '🐐 КОЗА ОРЁТ!';
+                status.style.color = '#ffaa44';
                 if (navigator.vibrate) {
-                    navigator.vibrate([60, 30, 60, 30, 60, 30, 80, 30, 60, 30, 80, 40]);
+                    navigator.vibrate([100, 40, 80, 40, 120]);
                 }
 
                 setTimeout(() => {
@@ -142,7 +142,7 @@
 
             tap.addEventListener('click', (e) => {
                 e.preventDefault();
-                blast();
+                goatSound();
                 localStorage.setItem('swill_blast', 'true');
             });
 
@@ -161,4 +161,4 @@
         })();
     </script>
 </body>
-</html>                
+</html>
